@@ -16,7 +16,7 @@ function createResultListElement(title, id, mediaType, source, published) {
   resultPublishedElement = document.createElement("h5");
   resultPublishedElement.setAttribute("class", "result-published");
   resultTileElement.innerHTML = title;
-  resultIdElement.innerHTML = id;
+  resultIdElement.innerHTML = "ID: " + id;
   resultMediaTypeElement.innerHTML = mediaType;
   resultSourceElement.innerHTML = source;
   resultPublishedElement.innerHTML = published;
@@ -43,7 +43,7 @@ function getInputFromSearchBar() {
 }
 
 // createResultListElement is a method that will create an element for a document in the result list
-createResultListElement("Title", "ID", "Media Type", "Source", "Published");
+// createResultListElement("Title", "ID", "Media Type", "Source", "Published");
 
 // getSelectedSearchMode is a method to see which radio button is selected
 getSelectedSearchMode();
