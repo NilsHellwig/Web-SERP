@@ -43,17 +43,61 @@ function getInputFromSearchBar() {
 }
 
 // createResultListElement is a method that will create an element for a document in the result list
-// createResultListElement("Title", "ID", "Media Type", "Source", "Published");
+// createResultListElement("23 Neue Corona-Fälle in Köln", 232323929, "Gesundheit", "NZZ", "27.07.2020");
 
-// getSelectedSearchMode is a method to see which radio button is selected
-getSelectedSearchMode();
-
-// getInputFromSearchBar is a method to get the entered text from the search bar.
-getInputFromSearchBar();
 
 // this event listener is waiting for the user to click on the search button
 
+function getQueryText(searchMode, query) {
+  return query_text = {
+    "size": 10000,
+    "query": {
+      "match": {
+        [searchMode]: query,
+      }
+    }
+  };
+}
+
+function createResults(hits) {
+  hits.forEach((hit, i) => {
+    let source = hit._source;
+    createResultListElement(source.title, source.id, source["media-type"], source.source, source.published)
+  });
+}
+
+function fetchResultsAndDisplayThese(queryText) {
+  // Fetching
+  /*
+  Add This to elasticsearch.yml:
+  http.cors.enabled: true
+  http.cors.allow-origin: /https?:\/\/(localhost)?(127.0.0.1)?(:[0-9]+)?/
+  */
+  $.ajax({
+    url: "http://localhost:9200/newsarticles/_search",
+    type: "GET",
+    dataType: "json",
+    contentType: "application/json",
+    crossDomain: true,
+    data: {
+      source: JSON.stringify(queryText),
+      source_content_type: "application/json"
+    },
+    success: function(result) {
+      let hits = result.hits.hits;
+      createResults(hits);
+    },
+    error: function(result) {
+      console.log("ERROR");
+    },
+
+  });
+}
+
 searchButton = document.getElementById("send_query");
 searchButton.addEventListener("click", function() {
-  console.log("search button clicked");
+  if (getSelectedSearchMode() !== null) {
+    let queryText = getQueryText(getSelectedSearchMode(), getInputFromSearchBar());
+    fetchResultsAndDisplayThese(queryText);
+  }
 });
