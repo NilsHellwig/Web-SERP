@@ -60,6 +60,7 @@ function getQueryText(searchMode, query) {
 }
 
 function createResults(hits) {
+  resultList.innerHTML = "";
   hits.forEach((hit, i) => {
     let source = hit._source;
     createResultListElement(source.title, source.id, source["media-type"], source.source, source.published)
