@@ -1,5 +1,6 @@
 // init result list
-resultList = document.querySelector(".result_list");
+var resultList = document.querySelector(".result_list");
+var radioButtons = document.getElementsByClassName("radioButtons");
 
 function createResultListElement(title, id, mediaType, source, published) {
   newResultElement = document.createElement("div");
@@ -27,36 +28,9 @@ function createResultListElement(title, id, mediaType, source, published) {
   newResultElement.append(resultPublishedElement);
 }
 
-function getSelectedSearchMode() {
-  radioButtons = document.querySelectorAll("input");
-  for (let i = 0; i < radioButtons.length; i++) {
-    if (radioButtons[i].checked == true) {
-      return radioButtons[i].id;
-    }
-  }
-  return null;
-}
-
 function getInputFromSearchBar() {
   searchBar = document.getElementById("input");
   return searchBar.value;
-}
-
-// createResultListElement is a method that will create an element for a document in the result list
-// createResultListElement("23 Neue Corona-Fälle in Köln", 232323929, "Gesundheit", "NZZ", "27.07.2020");
-
-
-// this event listener is waiting for the user to click on the search button
-
-function getQueryText(searchMode, query) {
-  return query_text = {
-    "size": 10000,
-    "query": {
-      "match": {
-        [searchMode]: query,
-      }
-    }
-  };
 }
 
 function createResults(hits) {
@@ -67,6 +41,18 @@ function createResults(hits) {
   });
 }
 
+function getQueryText(searchMode, query) {
+  return query_text = {
+    "size": 10000,
+    "query": {
+      "multi_match": {
+        "query": query,
+        "fields": searchMode
+      }
+    }
+  };
+}
+
 function fetchResultsAndDisplayThese(queryText) {
   // Fetching
   /*
@@ -74,6 +60,7 @@ function fetchResultsAndDisplayThese(queryText) {
   http.cors.enabled: true
   http.cors.allow-origin: /https?:\/\/(localhost)?(127.0.0.1)?(:[0-9]+)?/
   */
+  console.log(queryText);
   $.ajax({
     url: "http://localhost:9200/newsarticles/_search",
     type: "GET",
@@ -95,10 +82,25 @@ function fetchResultsAndDisplayThese(queryText) {
   });
 }
 
+function getSelectedSearchMode() {
+  let selectedFields = []
+  radioButtons = document.querySelectorAll("input");
+  for (let i = 0; i < radioButtons.length; i++) {
+    if (radioButtons[i].checked == true) {
+      selectedFields.push(radioButtons[i].id);
+    }
+  }
+  if (selectedFields.length === 0) {
+    return null;
+  }
+  return selectedFields;
+}
+// this event listener is waiting for the user to click on the search button
 searchButton = document.getElementById("send_query");
 searchButton.addEventListener("click", function() {
   if (getSelectedSearchMode() !== null) {
     let queryText = getQueryText(getSelectedSearchMode(), getInputFromSearchBar());
+    console.log(queryText);
     fetchResultsAndDisplayThese(queryText);
   }
 });
