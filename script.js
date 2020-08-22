@@ -2,6 +2,11 @@
 var resultList = document.querySelector(".result_list");
 var radioButtons = document.getElementsByClassName("radioButtons");
 
+from = 0;
+amount = parseInt($("#amount").val());
+
+
+
 function createResultListElement(title, id, mediaType, source, published) {
   newResultElement = document.createElement("div");
   newResultElement.setAttribute("class", "result");
@@ -43,7 +48,8 @@ function createResults(hits) {
 
 function getQueryText(searchMode, query) {
   return query_text = {
-    "size": 10000,
+    "size": amount + from,
+    "from": from,
     "query": {
       "multi_match": {
         "query": query,
@@ -60,7 +66,7 @@ function fetchResultsAndDisplayThese(queryText) {
   http.cors.enabled: true
   http.cors.allow-origin: /https?:\/\/(localhost)?(127.0.0.1)?(:[0-9]+)?/
   */
-  console.log(queryText);
+  //console.log(queryText);
   $.ajax({
     url: "http://localhost:9200/newsarticles/_search",
     type: "GET",
@@ -73,7 +79,9 @@ function fetchResultsAndDisplayThese(queryText) {
     },
     success: function(result) {
       let hits = result.hits.hits;
+
       createResults(hits);
+      buildPagination(result);
     },
     error: function(result) {
       console.log("ERROR");
@@ -95,12 +103,56 @@ function getSelectedSearchMode() {
   }
   return selectedFields;
 }
-// this event listener is waiting for the user to click on the search button
-searchButton = document.getElementById("send_query");
-searchButton.addEventListener("click", function() {
-  if (getSelectedSearchMode() !== null) {
-    let queryText = getQueryText(getSelectedSearchMode(), getInputFromSearchBar());
-    console.log(queryText);
-    fetchResultsAndDisplayThese(queryText);
+
+function buildPagination(result) {
+
+  $(".pagination-item").remove();
+  $(".pagination-spacing").remove();
+  var totalResults = result.hits.total.value;
+  var resultsFrom = from + 1;
+  var resultsTo = Math.min(from + amount, totalResults) ;
+  $("#amountInfo").text("showing results " + resultsFrom + " to " + resultsTo + " out of " +totalResults);
+  var currentPage = Math.floor(from/amount);
+  var maxPages = Math.ceil(totalResults/amount);
+  for(var i = 0; i<maxPages; i++){
+    //make sure pagination is only shown for first 2 items, then for the surrounding 2 of current i and maybe last one
+    if(i == 0 || i == 1 || ( i>= (currentPage-2) && i<= (currentPage+2)) || i == (maxPages-1)){
+      $("#pagination").append("<span class='pagination-item " + ((i == currentPage) ? "active" : "") + "' data-num='"+i+"'>"+(i+1)+"</span>");
+    }
+    if(( i == (currentPage-3) || i == (currentPage+3))){
+      $("#pagination").append("<span class='pagination-spacing'>...</span>");
+    }
+    
   }
+}
+
+$(document).ready(function() {
+  // this event listener is waiting for the user to click on the search button
+  searchButton = document.getElementById("send_query");
+  searchButton.addEventListener("click", function() {
+    if (getSelectedSearchMode() !== null) {
+
+      let queryText = getQueryText(getSelectedSearchMode(), getInputFromSearchBar());
+      //console.log(queryText);
+
+      fetchResultsAndDisplayThese(queryText);
+    }
+  });
+
+  $("#amount").change(function() {
+    amount = parseInt($(this).val());
+  });
+
+  $(document).on("click", ".pagination-item", function() {
+   
+    from = parseInt($(this).data("num")) * amount;
+
+    let queryText = getQueryText(getSelectedSearchMode(), getInputFromSearchBar());
+    fetchResultsAndDisplayThese(queryText)
+    $('html, body').animate({
+        scrollTop: $(".result_list").offset().top
+    }, 1000);
+
+  });
+
 });

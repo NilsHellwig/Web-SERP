@@ -6,6 +6,7 @@
   <title>SIGNAL News Article Search</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Manrope" rel="stylesheet">
+
 </head>
 <body>
   <main>
@@ -35,8 +36,29 @@
         <label for="published">Published</label>
        </fieldset>
       </form>
+      <div class="container">
+        <div class="row">
+          <div class="col-sm-12">
+            <select id="amount" class="selectpicker">
+              <option value="10">10 results per page</option>
+              <option value="20">20 results per page</option>
+              <option value="50">50 results per page</option>
+              <option value="100">100 results per page</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div classs="col-sm-12">
+          <span id="amountInfo"></span>
+        </div>
+      </div>
     </div>
     <div class="result_list"></div>
+    <div id="pagination">
+
+
+    </div>
   </main>
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
   <script src="script.js"></script>

@@ -133,7 +133,7 @@ fieldset {
 }
 
 .result_list{
-  margin-top: 7em;
+  margin-top: 9em;
 }
 
 .result {
@@ -163,4 +163,21 @@ fieldset {
   padding-left: 3em;
   margin-bottom: 3em;
   color: grey;
+}
+
+#pagination > span {
+  font-size: 24px;
+}
+
+.pagination-item {
+  margin-right: 5px;
+  cursor: pointer;
+}
+
+.pagination-spacing {
+  margin-right: 5px;
+}
+
+.pagination-item.active {
+  color: red;
 }
