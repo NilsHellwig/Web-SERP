@@ -108,6 +108,7 @@ function buildPagination(result) {
 
   $(".pagination-item").remove();
   $(".pagination-spacing").remove();
+
   var totalResults = result.hits.total.value;
   var resultsFrom = from + 1;
   var resultsTo = Math.min(from + amount, totalResults) ;
@@ -134,7 +135,8 @@ $(document).ready(function() {
 
       let queryText = getQueryText(getSelectedSearchMode(), getInputFromSearchBar());
       //console.log(queryText);
-
+      from = 0;
+      amount = parseInt($("#amount").val());
       fetchResultsAndDisplayThese(queryText);
     }
   });
