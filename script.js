@@ -132,10 +132,10 @@ $(document).ready(function() {
   searchButton = document.getElementById("send_query");
   searchButton.addEventListener("click", function() {
     if (getSelectedSearchMode() !== null) {
-
+      from = 0;
       let queryText = getQueryText(getSelectedSearchMode(), getInputFromSearchBar());
       //console.log(queryText);
-      from = 0;
+      
       amount = parseInt($("#amount").val());
       fetchResultsAndDisplayThese(queryText);
     }
