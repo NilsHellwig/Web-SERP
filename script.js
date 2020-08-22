@@ -127,22 +127,28 @@ function buildPagination(result) {
   }
 }
 
+function doSearch() {
+  if (getSelectedSearchMode() !== null) {
+    from = 0;
+    let queryText = getQueryText(getSelectedSearchMode(), getInputFromSearchBar());
+    //console.log(queryText);
+    
+    amount = parseInt($("#amount").val());
+    fetchResultsAndDisplayThese(queryText);
+  }
+}
+
 $(document).ready(function() {
   // this event listener is waiting for the user to click on the search button
   searchButton = document.getElementById("send_query");
   searchButton.addEventListener("click", function() {
-    if (getSelectedSearchMode() !== null) {
-      from = 0;
-      let queryText = getQueryText(getSelectedSearchMode(), getInputFromSearchBar());
-      //console.log(queryText);
-      
-      amount = parseInt($("#amount").val());
-      fetchResultsAndDisplayThese(queryText);
-    }
+    doSearch();
   });
 
   $("#amount").change(function() {
     amount = parseInt($(this).val());
+    from = 0;
+    doSearch();
   });
 
   $(document).on("click", ".pagination-item", function() {
@@ -153,7 +159,7 @@ $(document).ready(function() {
     fetchResultsAndDisplayThese(queryText)
     $('html, body').animate({
         scrollTop: $(".result_list").offset().top
-    }, 1000);
+    }, 200);
 
   });
 
