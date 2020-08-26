@@ -7,7 +7,7 @@ amount = parseInt($("#amount").val());
 
 
 
-function createResultListElement(title, id, mediaType, source, published) {
+function createResultListElement(title, id, mediaType, source, published, content) {
   newResultElement = document.createElement("div");
   newResultElement.setAttribute("class", "result");
   resultList.append(newResultElement);
@@ -21,6 +21,9 @@ function createResultListElement(title, id, mediaType, source, published) {
   resultSourceElement.setAttribute("class", "result-source");
   resultPublishedElement = document.createElement("h5");
   resultPublishedElement.setAttribute("class", "result-published");
+  showContentElement = document.createElement("h3");
+  showContentElement.setAttribute("class", "result-content-link");
+  showContentElement.innerHTML = "Show content...";
   resultTileElement.innerHTML = title;
   resultIdElement.innerHTML = "ID: " + id;
   resultMediaTypeElement.innerHTML = mediaType;
@@ -31,6 +34,25 @@ function createResultListElement(title, id, mediaType, source, published) {
   newResultElement.append(resultMediaTypeElement);
   newResultElement.append(resultSourceElement);
   newResultElement.append(resultPublishedElement);
+  newResultElement.append(showContentElement);
+  waitForFullContentView(content, newResultElement, showContentElement, resultPublishedElement);
+}
+
+function waitForFullContentView(content, newResultElement, showContentElement, resultPublishedElement) {
+  fullViewOpened = false;
+  showContentElement.addEventListener("click", function() {
+    fullViewOpened = !fullViewOpened;
+    if (!fullViewOpened) {
+      contentElement.remove();
+      showContentElement.innerHTML = "Show content..."
+    } else {
+      contentElement = document.createElement("h3");
+      contentElement.setAttribute("class", "result-content");
+      contentElement.innerHTML = content;
+      resultPublishedElement.append(contentElement);
+      showContentElement.innerHTML = "Close content..."
+    }
+  });
 }
 
 function getInputFromSearchBar() {
@@ -42,7 +64,7 @@ function createResults(hits) {
   resultList.innerHTML = "";
   hits.forEach((hit, i) => {
     let source = hit._source;
-    createResultListElement(source.title, source.id, source["media-type"], source.source, source.published)
+    createResultListElement(source.title, source.id, source["media-type"], source.source, source.published, source.content)
   });
 }
 
@@ -111,19 +133,19 @@ function buildPagination(result) {
 
   var totalResults = result.hits.total.value;
   var resultsFrom = from + 1;
-  var resultsTo = Math.min(from + amount, totalResults) ;
-  $("#amountInfo").text("showing results " + resultsFrom + " to " + resultsTo + " out of " +totalResults);
-  var currentPage = Math.floor(from/amount);
-  var maxPages = Math.ceil(totalResults/amount);
-  for(var i = 0; i<maxPages; i++){
+  var resultsTo = Math.min(from + amount, totalResults);
+  $("#amountInfo").text("showing results " + resultsFrom + " to " + resultsTo + " out of " + totalResults);
+  var currentPage = Math.floor(from / amount);
+  var maxPages = Math.ceil(totalResults / amount);
+  for (var i = 0; i < maxPages; i++) {
     //make sure pagination is only shown for first 2 items, then for the surrounding 2 of current i and maybe last one
-    if(i == 0 || i == 1 || ( i>= (currentPage-2) && i<= (currentPage+2)) || i == (maxPages-1)){
-      $("#pagination").append("<span class='pagination-item " + ((i == currentPage) ? "active" : "") + "' data-num='"+i+"'>"+(i+1)+"</span>");
+    if (i == 0 || i == 1 || (i >= (currentPage - 2) && i <= (currentPage + 2)) || i == (maxPages - 1)) {
+      $("#pagination").append("<span class='pagination-item " + ((i == currentPage) ? "active" : "") + "' data-num='" + i + "'>" + (i + 1) + "</span>");
     }
-    if(( i == (currentPage-3) || i == (currentPage+3))){
+    if ((i == (currentPage - 3) || i == (currentPage + 3))) {
       $("#pagination").append("<span class='pagination-spacing'>...</span>");
     }
-    
+
   }
 }
 
@@ -132,7 +154,7 @@ function doSearch() {
     from = 0;
     let queryText = getQueryText(getSelectedSearchMode(), getInputFromSearchBar());
     //console.log(queryText);
-    
+
     amount = parseInt($("#amount").val());
     fetchResultsAndDisplayThese(queryText);
   }
@@ -152,13 +174,13 @@ $(document).ready(function() {
   });
 
   $(document).on("click", ".pagination-item", function() {
-   
+
     from = parseInt($(this).data("num")) * amount;
 
     let queryText = getQueryText(getSelectedSearchMode(), getInputFromSearchBar());
     fetchResultsAndDisplayThese(queryText)
     $('html, body').animate({
-        scrollTop: $(".result_list").offset().top
+      scrollTop: $(".result_list").offset().top
     }, 200);
 
   });
