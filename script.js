@@ -39,13 +39,15 @@ function createResultListElement(title, id, mediaType, source, published, conten
 }
 
 function waitForFullContentView(content, newResultElement, showContentElement, resultPublishedElement) {
-  fullViewOpened = false;
+  let fullViewOpened = false;
+  let contentElement;
   showContentElement.addEventListener("click", function() {
-    fullViewOpened = !fullViewOpened;
-    if (!fullViewOpened) {
-      contentElement.remove();
+    if (fullViewOpened === true) {
+      fullViewOpened = false;
       showContentElement.innerHTML = "Show content..."
+      contentElement.remove();
     } else {
+      fullViewOpened = true;
       contentElement = document.createElement("h3");
       contentElement.setAttribute("class", "result-content");
       contentElement.innerHTML = content;
@@ -61,6 +63,7 @@ function getInputFromSearchBar() {
 }
 
 function createResults(hits) {
+  console.log("Amount of Hits: ", hits.length);
   resultList.innerHTML = "";
   hits.forEach((hit, i) => {
     let source = hit._source;
@@ -69,8 +72,9 @@ function createResults(hits) {
 }
 
 function getQueryText(searchMode, query) {
+  console.log(amount + from, from);
   return query_text = {
-    "size": amount + from,
+    "size": amount,
     "from": from,
     "query": {
       "multi_match": {
