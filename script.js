@@ -175,7 +175,7 @@ function doSearch() {
 function readCsv(event) {
   var rows = event.target.result.split("\n");
   for (var i = 0; i < rows.length; i++) {
-    resultListEval.push(rows[i]);
+    resultListEval.push(rows[i].trim());
   }
 
   handleEvaluation();
@@ -184,6 +184,7 @@ function readCsv(event) {
 
 async function handleEvaluation() {
   var results = await fetchAllResults();
+  console.log(results);
   doOverallEvaluation(results);
   doEvaluationAtK(results, 10);
   doEvaluationAtK(results, 20);
