@@ -4,7 +4,7 @@ var radioButtons = document.getElementsByClassName("radioButtons");
 
 from = 0;
 amount = parseInt($("#amount").val());
-
+resultListEval = []
 
 
 function createResultListElement(title, id, mediaType, source, published, content) {
@@ -71,11 +71,19 @@ function createResults(hits) {
   });
 }
 
-function getQueryText(searchMode, query) {
-  console.log(amount + from, from);
+function getQueryText(searchMode, query, fromOverride, amountOverride) {
+  let fromQuery = from;
+  let amountQuery = amount;
+  if(typeof(fromOverride) !== 'undefined') {
+    fromQuery = fromOverride;
+  }
+  if(typeof(amountOverride) !== 'undefined') {
+    amountQuery = amountOverride;
+  }
+
   return query_text = {
-    "size": amount,
-    "from": from,
+    "size": amountQuery,
+    "from": fromQuery,
     "query": {
       "multi_match": {
         "query": query,
@@ -164,6 +172,178 @@ function doSearch() {
   }
 }
 
+function readCsv(event) {
+  var rows = event.target.result.split("\n");
+  for (var i = 0; i < rows.length; i++) {
+    resultListEval.push(rows[i]);
+  }
+
+  handleEvaluation();
+
+}
+
+async function handleEvaluation() {
+  var results = await fetchAllResults();
+  doOverallEvaluation(results);
+  doEvaluationAtK(results, 10);
+  doEvaluationAtK(results, 20);
+  doEvaluationAtK(results, 30);
+
+}
+
+function doEvaluationAtK(results, k) {
+  console.log("=====================");
+  console.log("=====================");
+  console.log("%cEvaluation at " + k, "color: blue");
+  let hits = results.hits.hits;
+  let totalRelevantItems = resultListEval.length;
+  let totalFoundItems = hits.length;
+  var tpCount = 0;
+  var fpCount = 0;
+  for(var i = 0; i<hits.length; i++) {
+    if(i == k){
+      break;
+    }
+    let hitId = hits[i]._source.id;
+    if(resultListEval.includes(hitId)){
+      tpCount++;
+    }else{
+      fpCount++;
+    }
+  }
+  var fnCount = totalRelevantItems - tpCount
+  let precision = tpCount / (tpCount + fpCount);
+  let recall = tpCount / (tpCount + fnCount);
+
+  console.log("Relevant items: " + totalRelevantItems);
+  console.log("total found items: " + k);
+  console.log("TP: " + tpCount);
+  console.log("FP: " + fpCount);
+  console.log("Precision at "+k+": " + precision);
+  console.log("Recall: at "+k+": " + recall);  
+  console.log("F-Measure: " + calculateFMeasure(precision, recall, 1));
+}
+
+function doOverallEvaluation(results) {
+  console.log("=====================");
+  console.log("=====================");
+  console.log("%cOverall: ", "color: blue");
+  let hits = results.hits.hits;
+  let totalRelevantItems = resultListEval.length;
+  let totalFoundItems = hits.length;
+  var tpCount = 0;
+  var fpCount = 0;
+  for(var i = 0; i<hits.length; i++) {
+    let hitId = hits[i]._source.id;
+    if(resultListEval.includes(hitId)){
+      tpCount++;
+    }else{
+      fpCount++;
+    }
+  }
+  var fnCount = totalRelevantItems - tpCount
+  let precision = tpCount / (tpCount + fpCount);
+  if(isNaN(precision)) {
+    precision = 0;
+  }
+  let recall = tpCount / (tpCount + fnCount);
+
+  console.log("Relevant items: " + totalRelevantItems);
+  console.log("total found items: " + totalFoundItems);
+  console.log("TP: " + tpCount);
+  console.log("FP: " + fpCount);
+  console.log("Precision: " + precision);
+  console.log("Recall: " + recall);  
+  console.log("F-Measure: " + calculateFMeasure(precision, recall, 1)); 
+
+  var prAtKs = calculatePRAtAllK(results);
+  var averagePrecision = calculateAveragePrecision(prAtKs);
+  console.log("Average Precision: " + averagePrecision);
+}
+
+function calculateFMeasure(precision, recall, beta) {
+  //avoid NaN
+  if(precision == 0 || recall == 0){
+    return 0;
+  }
+  return ((beta*beta+1) * precision * recall) / (beta*beta*precision + recall)
+}
+
+function calculatePRAtAllK(results) {
+  let hits = results.hits.hits;
+  let totalRelevantItems = resultListEval.length;
+  var tpCount = 0;
+  var fpCount = 0;
+  var precisionsAtK = []
+  var recallsAtK = []
+  for(var i = 0; i<hits.length; i++) {
+    let hitId = hits[i]._source.id;
+    if(resultListEval.includes(hitId)){
+      tpCount++;
+    }else{
+      fpCount++;
+    }
+    precisionsAtK[i] = tpCount / (i+1);
+    recallsAtK[i] = tpCount / totalRelevantItems;
+  }
+  return {
+    "precision": precisionsAtK,
+    "recall": recallsAtK
+  };
+
+}
+
+function calculateAveragePrecision(prAtK) {
+  var lastPrecision = 0;
+  var pAtKs = [];
+  for(var i = 0; i<prAtK.precision.length; i++) {
+    if(prAtK.precision[i] > lastPrecision) {
+      //precision goes up, take that P@K-value
+      pAtKs.push(prAtK.recall[i]);
+    }
+    lastPrecision = prAtK.precision[i];
+  }
+  return averageArray(pAtKs);
+}
+
+async function fetchAllResults(){
+  let queryText = getQueryText(getSelectedSearchMode(), getInputFromSearchBar(), 0, 10000);
+  const result = await handleAjaxAsync({
+    url: "http://localhost:9200/newsarticles/_search",
+    type: "GET",
+    dataType: "json",
+    contentType: "application/json",
+    crossDomain: true,
+    data: {
+      source: JSON.stringify(queryText),
+      source_content_type: "application/json"
+    }
+  });
+
+  return result;
+}
+
+function averageArray(arr) {
+  if(arr.length == 0){
+    return 0;
+  }
+  var total = 0;
+  for(var i = 0; i < arr.length; i++) {
+      total += arr[i];
+  }
+  return total / arr.length;
+}
+
+async function handleAjaxAsync(data) {
+  try {
+    const res = await $.ajax(data);
+    return res;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+
 $(document).ready(function() {
   // this event listener is waiting for the user to click on the search button
   searchButton = document.getElementById("send_query");
@@ -176,6 +356,16 @@ $(document).ready(function() {
     from = 0;
     doSearch();
   });
+
+  $("#evaluate").click(function () {
+    var fileUpload = document.getElementById("evaluationInput");
+    
+    var reader = new FileReader();
+    
+    reader.onload = readCsv;
+    reader.readAsText(fileUpload.files[0]);
+    
+});
 
   $(document).on("click", ".pagination-item", function() {
 
