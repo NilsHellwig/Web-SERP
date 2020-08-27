@@ -4,8 +4,8 @@ var radioButtons = document.getElementsByClassName("radioButtons");
 
 from = 0;
 amount = parseInt($("#amount").val());
-resultListEval = []
-
+resultListEval = [];
+sessionAPs = [];
 
 function createResultListElement(title, id, mediaType, source, published, content) {
   newResultElement = document.createElement("div");
@@ -259,7 +259,9 @@ function doOverallEvaluation(results) {
 
   var prAtKs = calculatePRAtAllK(results);
   var averagePrecision = calculateAveragePrecision(prAtKs);
+  sessionAPs.push(averagePrecision);
   console.log("Average Precision: " + averagePrecision);
+  console.log("mAP so far: " + calculateMAP());
 }
 
 function calculateFMeasure(precision, recall, beta) {
@@ -305,6 +307,10 @@ function calculateAveragePrecision(prAtK) {
     lastPrecision = prAtK.precision[i];
   }
   return averageArray(pAtKs);
+}
+
+function calculateMAP(){
+  return averageArray(sessionAPs);
 }
 
 async function fetchAllResults(){
