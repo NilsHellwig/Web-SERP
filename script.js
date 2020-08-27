@@ -124,11 +124,15 @@ function fetchResultsAndDisplayThese(queryText) {
   });
 }
 
-function getSelectedSearchMode() {
+function getSelectedSearchMode(forceAll) {
+  var forceAdd = false;
+  if(typeof(forceAll) !== 'undefined') {
+    forceAdd = forceAll;
+  }
   let selectedFields = []
-  radioButtons = document.querySelectorAll("input");
+  radioButtons = document.querySelectorAll("input.search-mode");
   for (let i = 0; i < radioButtons.length; i++) {
-    if (radioButtons[i].checked == true) {
+    if (radioButtons[i].checked == true || forceAdd) {
       selectedFields.push(radioButtons[i].id);
     }
   }
@@ -174,17 +178,32 @@ function doSearch() {
 
 function readCsv(event) {
   var rows = event.target.result.split("\n");
+  var query;
+  var fieldArr = [];
   for (var i = 0; i < rows.length; i++) {
+    if(i == 0) {
+      //read query
+      query = rows[i].trim();
+      continue;
+    }
+    if(i == 1) {
+      //read fields
+      fieldArr = rows[i].trim().split(",");
+      continue;
+    }
     resultListEval.push(rows[i].trim());
   }
 
-  handleEvaluation();
+  handleEvaluation(query, fieldArr);
 
 }
 
-async function handleEvaluation() {
-  var results = await fetchAllResults();
-  console.log(results);
+async function handleEvaluation(query, fields) {
+  var results = await fetchAllResults(query, fields);
+  console.log("=====================");
+  console.log("=====================");
+  console.log("%cCurrently evaluating: '" + query +"'", "color: red");
+  
   doOverallEvaluation(results);
   doEvaluationAtK(results, 10);
   doEvaluationAtK(results, 20);
@@ -313,8 +332,8 @@ function calculateMAP(){
   return averageArray(sessionAPs);
 }
 
-async function fetchAllResults(){
-  let queryText = getQueryText(getSelectedSearchMode(), getInputFromSearchBar(), 0, 10000);
+async function fetchAllResults(query, fields){
+  let queryText = getQueryText(fields, query, 0, 10000);
   const result = await handleAjaxAsync({
     url: "http://localhost:9200/newsarticles/_search",
     type: "GET",
@@ -367,10 +386,12 @@ $(document).ready(function() {
   $("#evaluate").click(function () {
     var fileUpload = document.getElementById("evaluationInput");
     
-    var reader = new FileReader();
     
-    reader.onload = readCsv;
-    reader.readAsText(fileUpload.files[0]);
+    for(var i = 0; i<fileUpload.files.length;i++) {
+      var reader = new FileReader();  
+      reader.onload = readCsv;
+      reader.readAsText(fileUpload.files[i]);
+    }
     
 });
 

@@ -1,0 +1,3 @@
+#Query goes on the first line e.g. playpen
+#the selected fields should be on the second line, comma-separated (no space), e.g.: content,title
+#fill the following lines with the document ID, one ID per line
