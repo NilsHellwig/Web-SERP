@@ -11,7 +11,7 @@ function createResultListElement(title, id, mediaType, source, published, conten
   newResultElement = document.createElement("div");
   newResultElement.setAttribute("class", "result");
   resultList.append(newResultElement);
-  resultTileElement = document.createElement("h2");
+  resultTileElement = document.createElement("h6");
   resultTileElement.setAttribute("class", "result-title");
   resultIdElement = document.createElement("h3");
   resultIdElement.setAttribute("class", "result-id");
