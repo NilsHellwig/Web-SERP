@@ -6,6 +6,7 @@ from = 0;
 amount = parseInt($("#amount").val());
 resultListEval = [];
 sessionAPs = [];
+sessionRRs = [];
 
 function createResultListElement(title, id, mediaType, source, published, content) {
   newResultElement = document.createElement("div");
@@ -169,50 +170,132 @@ function doSearch() {
   if (getSelectedSearchMode() !== null) {
     from = 0;
     let queryText = getQueryText(getSelectedSearchMode(), getInputFromSearchBar());
-    //console.log(queryText);
 
     amount = parseInt($("#amount").val());
     fetchResultsAndDisplayThese(queryText);
   }
 }
 
-function readCsv(event) {
-  var rows = event.target.result.split("\n");
-  var query;
-  var fieldArr = [];
-  for (var i = 0; i < rows.length; i++) {
-    if(i == 0) {
-      //read query
-      query = rows[i].trim();
-      continue;
-    }
-    if(i == 1) {
-      //read fields
-      fieldArr = rows[i].trim().split(",");
-      continue;
-    }
-    resultListEval.push(rows[i].trim());
+async function readCsv(event) {
+  console.log("Evaluation has started, this can take a bit...");
+  var topics = JSON.parse(event.target.result)["topics"];
+  sessionAPs = [];
+  sessionRRs = [];
+  //handle topics
+  for await (const topic of topics) {
+   
+    handleTopic(topic)
   }
 
-  handleEvaluation(query, fieldArr);
-
+  console.log(calculateMRR());
+  /*
+  topics.forEach(async function(topic) {
+    await handleTopic(topic).done;
+  });
+  */
 }
 
-async function handleEvaluation(query, fields) {
+
+async function handleTopic(topic) {
+  let queries = topic["queries"];
+
+  for await (const query of queries) {
+    handleEvaluation(query, topic);
+  }
+/*  queries.forEach(async function(query){
+    await handleEvaluation(query, topic);
+  });
+*/
+}
+
+async function handleEvaluation(queries, topic) {
+  let query = queries["query"];
+  let fields = queries["fields"];
+  
   var results = await fetchAllResults(query, fields);
+  
+  resultListEval = queries["relevantResults"].map(function(item){
+    return item["queryId"];
+  });
+  
   console.log("=====================");
   console.log("=====================");
+  console.log("%cEvaluating Topic: '" + topic["topic"] +"'", "color: red");
+
   console.log("%cCurrently evaluating: '" + query +"'", "color: red");
   
-  doOverallEvaluation(results);
-  doEvaluationAtK(results, 10);
-  doEvaluationAtK(results, 20);
-  doEvaluationAtK(results, 30);
+  //doOverallEvaluation(results);
+  
+  //doEvaluationAtK(results, 30);
+  //evaluateDCGatK(results, 30);
+  //evaluatenDCGatK(results, 30);
+  let k = 30;
+  doEvaluationAtK(results, k);
+  let mrr = await evaluateMRRatK(results, k);
+  let dcg = await evaluateDCGatK(results, k);
+  let nDcg = await evaluatenDCGatK(results, k);
+  console.log("Mean reciprocal Rank at " + k + ": " + mrr);
+  console.log("Discounted cumulative Gain at " + k + ": " + dcg);
+  console.log("Normalized discouted cumulative Gaun at " + k + ": " + nDcg);
+  return true;
+}
 
+async function evaluateDCGatK(results, k) {
+  var dcg = 0;
+  let hits = results.hits.hits;
+  for(var i = 0; i<hits.length; i++) {
+    if(i == k) {
+      break;
+    }
+    let hitId = hits[i]._source.id;
+
+    let relevance = resultListEval.includes(hitId) | 0;//binary, so we just take if it is relevant or not
+    let dividend = Math.pow(2, relevance) - 1;
+    let divisor = Math.log(i+1+1); //i+1 to start from 1, using ln just like mentioned in croft et al
+    dcg += dividend/divisor;
+
+  }
+  return dcg;
+}
+
+async function evaluatenDCGatK(results, k) {
+  let dcgAtK = await evaluateDCGatK(results, k);
+  let idealDCG = generateIdealDCGatK(k, resultListEval.length);
+  return dcgAtK/idealDCG;
+}
+
+function generateIdealDCGatK(k, relevantAmount) {
+  let sum = 0;
+
+  for(var i = 0; i<k; i++){
+    let relevance =  (i<relevantAmount)|0;
+    let dividend = Math.pow(2, relevance) - 1;
+    let divisor = Math.log(i+1+1); //i+1 to start from 1
+    sum += dividend/divisor;
+  }
+  return sum;
+}
+
+async function evaluateMRRatK(results, k) {
+  let hits = results.hits.hits;
+  //default if nothing is found
+  var rr = 0;
+  for(var i = 1; i<=hits.length; i++) {
+    if(i == k+1) {
+      break;
+    }
+    
+    let hitId = hits[i-1]._source.id;
+    if(resultListEval.includes(hitId)){
+      rr = 1/i;
+      break;
+    }
+  }
+  sessionRRs.push(rr);
+  return rr;
 }
 
 function doEvaluationAtK(results, k) {
-  console.log("=====================");
   console.log("=====================");
   console.log("%cEvaluation at " + k, "color: blue");
   let hits = results.hits.hits;
@@ -236,12 +319,12 @@ function doEvaluationAtK(results, k) {
   let recall = tpCount / (tpCount + fnCount);
 
   console.log("Relevant items: " + totalRelevantItems);
-  console.log("total found items: " + k);
+//  console.log("total found items: " + k);
   console.log("TP: " + tpCount);
   console.log("FP: " + fpCount);
   console.log("Precision at "+k+": " + precision);
-  console.log("Recall: at "+k+": " + recall);  
-  console.log("F-Measure: " + calculateFMeasure(precision, recall, 1));
+//  console.log("Recall: at "+k+": " + recall);  
+//  console.log("F-Measure at"+k+": " + calculateFMeasure(precision, recall, 1));
 }
 
 function doOverallEvaluation(results) {
@@ -332,6 +415,10 @@ function calculateMAP(){
   return averageArray(sessionAPs);
 }
 
+function calculateMRR() {
+  return averageArray(sessionRRs);
+}
+
 async function fetchAllResults(query, fields){
   let queryText = getQueryText(fields, query, 0, 10000);
   const result = await handleAjaxAsync({
@@ -369,6 +456,42 @@ async function handleAjaxAsync(data) {
   }
 }
 
+function parseQuery(queryString) {
+  let exploded = queryString.replaceAll(/(id:|content:|title:|mediatype:|source:|published:)/g, "|||||$1").split("|||||");
+
+  let queryActual = exploded[0];
+  var fields = {};
+
+  for(var i = 1; i<exploded.length; i++) {
+    let field =  exploded[i];
+   
+    if(field.startsWith("id:")) {
+      fields["id"] = field.replace("id:", "");
+    }
+    if(field.startsWith("content:")) {
+      fields["content"] = field.replace("content:", "");
+    }
+    if(field.startsWith("mediatype:")) {
+      fields["mediatype"] = field.replace("mediatype:", "");
+    }
+    if(field.startsWith("mediatype:")) {
+      fields["mediatype"] = field.replace("mediatype:", "");
+    }
+    if(field.startsWith("source:")) {
+      fields["source"] = field.replace("source:", "");
+    }
+    if(field.startsWith("published:")) {
+      fields["published"] = field.replace("published:", "");
+    }
+    
+  }
+
+  return {
+    "query": queryActual,
+    "fields": fields
+  };
+
+}
 
 $(document).ready(function() {
   // this event listener is waiting for the user to click on the search button
