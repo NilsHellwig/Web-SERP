@@ -250,7 +250,7 @@ async function handleEvaluation(queries, topic) {
   sessionnDcg.push(nDcg);
   console.log("Mean reciprocal Rank at " + k + ": " + mrr);
   console.log("Discounted cumulative Gain at " + k + ": " + dcg);
-  console.log("Normalized discouted cumulative Gaun at " + k + ": " + nDcg);
+  console.log("Normalized discouted cumulative Gain at " + k + ": " + nDcg);
   return true;
 }
 
@@ -344,9 +344,9 @@ function doEvaluationAtK(results, k) {
   console.log("total found items: " + k);
   console.log("TP: " + tpCount);
   console.log("FP: " + fpCount);
-  console.log("Precision at "+k+": " + precision);
-  console.log("Recall: at "+k+": " + recall);  
-  console.log("F-Measure at"+k+": " + calculateFMeasure(precision, recall, 1));
+  console.log("Precision at " + k + ": " + precision);
+  console.log("Recall at " + k + ": " + recall);  
+  console.log("F-Measure at " + k + ": " + calculateFMeasure(precision, recall, 1));
 }
 
 function doOverallEvaluation(results) {
