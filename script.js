@@ -236,6 +236,7 @@ async function handleEvaluation(queries, topic) {
   console.log("%cEvaluating Topic: '" + topic["topic"] +"'", "color: red");
 
   console.log("%cCurrently evaluating: '" + query +"'", "color: red");
+  console.log("%cCurrent query ID: '" + queries["id"] +"'", "color: red");
   
   //doOverallEvaluation(results);
   
