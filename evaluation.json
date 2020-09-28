@@ -3,6 +3,7 @@
     "topic": "A new study estimates that there are three trillion trees on Earth",
     "queries": [{
       "query": "number of threes on earth new study",
+	  "id": "1",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "0cdb5b34-ba38-4174-aad1-7a7fd7e36eed"
@@ -65,6 +66,7 @@
       }]
     }, {
       "query": "study estimation trees on earth",
+	  "id": "2",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "0cdb5b34-ba38-4174-aad1-7a7fd7e36eed"
@@ -129,6 +131,7 @@
       }]
     }, {
       "query": "three trillion trees on Earth",
+	  "id": "3",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "0cdb5b34-ba38-4174-aad1-7a7fd7e36eed"
@@ -196,6 +199,7 @@
     "topic": "Google changes its logo, biggest redesign since 1999",
     "queries": [{
       "query": "google changes logo",
+	  "id": "4",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "18db3f87-bdc1-460f-bd1d-e132ebd874e0"
@@ -256,6 +260,7 @@
       }]
     }, {
       "query": "new logo google",
+	  "id": "5",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "0a848bb7-22ca-477e-a57e-14906ba7db58"
@@ -320,6 +325,7 @@
       }]
     }, {
       "query": "google logo redesign",
+	  "id": "6",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "02d710b7-6ea8-4313-a318-1d3439c217fc"
@@ -387,6 +393,7 @@
     "topic": "Stephen Colbert debuts as the new host of CBS's The Late Show",
     "queries": [{
       "query": "Stephen Colbert debuts as the new host of CBS's The Late Show",
+	  "id": "7",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "4590f5da-2073-490b-8e3a-a60ad6f8954e"
@@ -413,6 +420,7 @@
       }]
     }, {
       "query": "Stephen colbert new host of the late show cbs",
+	  "id": "8",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "095e7fba-6d48-4b2a-9f25-ab65f652f73b"
@@ -471,6 +479,7 @@
       }]
     }, {
       "query": "Stephen colbert debut the late show",
+	  "id": "9",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "07310813-ea10-4382-a951-eb980d3d5079"
@@ -518,6 +527,7 @@
     "topic": "Jeremy Corbyn became the new leader of the UK Labour Party",
     "queries": [{
       "query": "jeremy corbyn new leader of labour party",
+	  "id": "10",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "0e8741bb-0014-4ce9-b124-8f2558a13076"
@@ -558,6 +568,7 @@
       }]
     }, {
       "query": "jeremy corbyn new leader of labour party",
+	  "id": "11",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "0e8741bb-0014-4ce9-b124-8f2558a13076"
@@ -598,6 +609,7 @@
       }]
     }, {
       "query": "new leader of labour party",
+	  "id": "12",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "00c4ab8f-6a87-4bbf-98f2-3d33b04bd347"
@@ -665,6 +677,7 @@
     "topic": "Total lunar eclipse",
     "queries": [{
       "query": "moon eclipse",
+	  "id": "13",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "03d393f0-1695-44cf-94c3-c4146a1bfdac"
@@ -729,6 +742,7 @@
       }]
     }, {
       "query": "lunar eclipse",
+	  "id": "14",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "1193ef83-0f14-4d84-b320-00ec91e80935"
@@ -793,6 +807,7 @@
       }]
     }, {
       "query": "total lunar eclipse",
+	  "id": "15",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "03d393f0-1695-44cf-94c3-c4146a1bfdac"
@@ -860,6 +875,7 @@
     "topic": "Porsche announced that Oliver Blume will be their next CEO",
     "queries": [{
       "query": "oliver blume new ceo of porsche",
+	  "id": "16",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "01169c2b-59c3-485e-a258-f9f75bd83f7e"
@@ -890,6 +906,7 @@
       }]
     }, {
       "query": "new ceo of porsche",
+	  "id": "17",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "0740ead8-4586-4d4e-988d-2eb37d631512"
@@ -936,6 +953,7 @@
       }]
     }, {
       "query": "Oliver Blume new CEO Porsche",
+	  "id": "18",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "01169c2b-59c3-485e-a258-f9f75bd83f7e"
@@ -977,6 +995,7 @@
     "topic": "Apple's iOS App Store suffers it's first major cyberattack",
     "queries": [{
       "query": "cyberattack XcodeGhost app store",
+	  "id": "19",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "012fba00-d157-42ca-89c0-dcae11defbad"
@@ -1039,6 +1058,7 @@
       }]
     }, {
       "query": "App Store cyberattack",
+	  "id": "20",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "2b7436e3-8fc3-4311-979c-23d555d2f1e2"
@@ -1065,6 +1085,7 @@
       }]
     }, {
       "query": "iOS App Store cyberattack",
+	  "id": "21",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "2b7436e3-8fc3-4311-979c-23d555d2f1e2"
@@ -1088,6 +1109,7 @@
     "topic": "A car bomb kills people in the Latakia Governorate",
     "queries": [{
       "query": "latakia car bomb",
+	  "id": "22",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "05475d34-e351-421d-b64e-5b4f6fc911a9"
@@ -1126,6 +1148,7 @@
       }]
     }, {
       "query": "latakia car bomb 10 killed people",
+	  "id": "23",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "05475d34-e351-421d-b64e-5b4f6fc911a9"
@@ -1162,6 +1185,7 @@
       }]
     }, {
       "query": "car bomb Latakia Governorate",
+	  "id": "24",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "05475d34-e351-421d-b64e-5b4f6fc911a9"
@@ -1203,6 +1227,7 @@
     "topic": "Pope Francis simplifies the process of annulment of a Catholic marriage with a decree",
     "queries": [{
       "query": "change of annulment process of marriage catholics pope francis",
+	  "id": "25",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "18b0b47b-029e-47e2-b405-69dfb492ecc5"
@@ -1267,6 +1292,7 @@
       }]
     }, {
       "query": "Pope Francis simplifies annulment process of a marriage",
+	  "id": "26",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "18b0b47b-029e-47e2-b405-69dfb492ecc5"
@@ -1331,6 +1357,7 @@
       }]
     }, {
       "query": "Pope Francis annulment of a catholic marriage",
+	  "id": "27",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "18b0b47b-029e-47e2-b405-69dfb492ecc5"
@@ -1398,6 +1425,7 @@
     "topic": "Pope Francis visits President Barack Obama in the White House",
     "queries": [{
       "query": "Pope Francis visits the president of the united states in the White House",
+	  "id": "28",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "00d73a65-e1bc-4bfc-bec2-20434c2ffefa"
@@ -1460,6 +1488,7 @@
       }]
     }, {
       "query": "pope francis visited barack obama in the white house",
+	  "id": "29",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "010bd68e-ca57-4fcd-bd59-301691088a21"
@@ -1522,6 +1551,7 @@
       }]
     }, {
       "query": "pope visits the us president in the white house",
+	  "id": "30",
       "fields": ["content", "title"],
       "relevantResults": [{
         "queryId": "010bd68e-ca57-4fcd-bd59-301691088a21"
