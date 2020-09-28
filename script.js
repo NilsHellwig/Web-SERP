@@ -299,7 +299,8 @@ function doEvaluationAtK(results, k) {
   console.log("=====================");
   console.log("%cEvaluation at " + k, "color: blue");
   let hits = results.hits.hits;
-  let totalRelevantItems = resultListEval.length;
+//  let totalRelevantItems = resultListEval.length;
+  let totalRelevantItems = k;
   let totalFoundItems = hits.length;
   var tpCount = 0;
   var fpCount = 0;
@@ -319,12 +320,12 @@ function doEvaluationAtK(results, k) {
   let recall = tpCount / (tpCount + fnCount);
 
   console.log("Relevant items: " + totalRelevantItems);
-//  console.log("total found items: " + k);
+  console.log("total found items: " + k);
   console.log("TP: " + tpCount);
   console.log("FP: " + fpCount);
   console.log("Precision at "+k+": " + precision);
-//  console.log("Recall: at "+k+": " + recall);  
-//  console.log("F-Measure at"+k+": " + calculateFMeasure(precision, recall, 1));
+  console.log("Recall: at "+k+": " + recall);  
+  console.log("F-Measure at"+k+": " + calculateFMeasure(precision, recall, 1));
 }
 
 function doOverallEvaluation(results) {
