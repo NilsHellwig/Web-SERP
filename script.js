@@ -7,6 +7,9 @@ amount = parseInt($("#amount").val());
 resultListEval = [];
 sessionAPs = [];
 sessionRRs = [];
+sessionnDcg = [];
+sessionPrecision = [];
+sessionFmeasure = [];
 
 function createResultListElement(title, id, mediaType, source, published, content) {
   newResultElement = document.createElement("div");
@@ -184,10 +187,13 @@ async function readCsv(event) {
   //handle topics
   for await (const topic of topics) {
    
-    handleTopic(topic)
+    await handleTopic(topic)
   }
 
-  console.log(calculateMRR());
+  console.log("Average f-measure: " + calculateAverageFMeasure());
+  console.log("Average nDCG: " + calculateAveragenDcg());
+  console.log("Average MRR: " + calculateMRR());
+  console.log("Mean average Precision: " + calculateMAP());
   /*
   topics.forEach(async function(topic) {
     await handleTopic(topic).done;
@@ -195,12 +201,19 @@ async function readCsv(event) {
   */
 }
 
+function calculateAverageFMeasure(){
+  return averageArray(sessionFmeasure);
+}
+function calculateAveragenDcg() {
+  return averageArray(sessionnDcg);
+}
+
 
 async function handleTopic(topic) {
   let queries = topic["queries"];
 
   for await (const query of queries) {
-    handleEvaluation(query, topic);
+    await handleEvaluation(query, topic);
   }
 /*  queries.forEach(async function(query){
     await handleEvaluation(query, topic);
@@ -234,6 +247,7 @@ async function handleEvaluation(queries, topic) {
   let mrr = await evaluateMRRatK(results, k);
   let dcg = await evaluateDCGatK(results, k);
   let nDcg = await evaluatenDCGatK(results, k);
+  sessionnDcg.push(nDcg);
   console.log("Mean reciprocal Rank at " + k + ": " + mrr);
   console.log("Discounted cumulative Gain at " + k + ": " + dcg);
   console.log("Normalized discouted cumulative Gaun at " + k + ": " + nDcg);
@@ -319,6 +333,13 @@ function doEvaluationAtK(results, k) {
   let precision = tpCount / (tpCount + fpCount);
   let recall = tpCount / (tpCount + fnCount);
 
+  sessionPrecision.push(precision);
+  sessionFmeasure.push(calculateFMeasure(precision, recall, 1));
+
+
+  var prAtK = calculatePRAtAllK(results, k);
+  var averagePrecision = calculateAveragePrecision(prAtK);
+  sessionAPs.push(averagePrecision);
   console.log("Relevant items: " + totalRelevantItems);
   console.log("total found items: " + k);
   console.log("TP: " + tpCount);
@@ -375,14 +396,20 @@ function calculateFMeasure(precision, recall, beta) {
   return ((beta*beta+1) * precision * recall) / (beta*beta*precision + recall)
 }
 
-function calculatePRAtAllK(results) {
+function calculatePRAtAllK(results, k = -1) {
   let hits = results.hits.hits;
   let totalRelevantItems = resultListEval.length;
   var tpCount = 0;
   var fpCount = 0;
   var precisionsAtK = []
   var recallsAtK = []
+  if(k == -1){
+    k = Infinity;
+  }
   for(var i = 0; i<hits.length; i++) {
+    if (i == k) {
+      break;
+    }
     let hitId = hits[i]._source.id;
     if(resultListEval.includes(hitId)){
       tpCount++;
@@ -400,14 +427,15 @@ function calculatePRAtAllK(results) {
 }
 
 function calculateAveragePrecision(prAtK) {
-  var lastPrecision = 0;
+  var lastRecall = 0;
   var pAtKs = [];
+
   for(var i = 0; i<prAtK.precision.length; i++) {
-    if(prAtK.precision[i] > lastPrecision) {
-      //precision goes up, take that P@K-value
-      pAtKs.push(prAtK.recall[i]);
+    if(prAtK.recall[i] > lastRecall) {
+      //recall goes up, take that P@K-value
+      pAtKs.push(prAtK.precision[i]);
     }
-    lastPrecision = prAtK.precision[i];
+    lastRecall = prAtK.recall[i];
   }
   return averageArray(pAtKs);
 }
