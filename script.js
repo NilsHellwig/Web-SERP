@@ -532,3 +532,10 @@ $(document).ready(function() {
   });
 
 });
+
+function handleKeyEnter(e) {
+  if(e.keyCode === 13){
+      e.preventDefault(); // Ensure it is only this code that rusn
+      doSearch();
+  }
+}
