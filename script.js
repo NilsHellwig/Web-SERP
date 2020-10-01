@@ -85,7 +85,129 @@ function getQueryText(searchMode, query, fromOverride, amountOverride) {
     amountQuery = amountOverride;
   }
 
-  return query_text = {
+  let queryinfo = parseQuery(query);
+  let fields = queryinfo.fields;
+
+  /*
+  {
+    "query": queryActual,
+    "fields": fields
+  };
+   */
+
+   if(Object.keys(queryinfo.fields).length == 0) {
+     // only  a query, no additional fields
+      query_text = {
+      "size": amountQuery,
+      "from": fromQuery,
+      "query": {
+        "query_string": {
+          "query": queryinfo.query,
+//        "default_field": "content"
+        }
+      }
+    }
+   }else{
+
+    /*
+    
+      fields["id"] = field.replace("id:", "");
+      fields["content"] = field.replace("content:", "");
+      fields["title"] = field.replace("mediatype:", "");
+      fields["mediatype"] = field.replace("mediatype:", "");
+      fields["source"] = field.replace("source:", "");
+      fields["published"] = field.replace("published:", "");
+    */
+
+     //additional fields set, do some magic stuff
+     query_text = {
+       "query": {
+         "bool": {
+           "must": [],
+           "should": []
+         }
+       }
+     };
+     var multi_match_fields = [];
+     if(fields.hasOwnProperty("id")) {
+       query_tex["query"]["bool"]["must"].push({
+         "match": {
+           "id": fields.id
+         }
+       });
+     }else{
+      query_text["query"]["bool"]["should"].push({
+        "match": {
+          "id": queryinfo.query
+        }
+      });
+     }
+     if(fields.hasOwnProperty("content")) {
+      query_text["query"]["bool"]["must"].push({
+        "match": {
+          "content": fields.content
+        }
+      });
+    }else{
+      query_text["query"]["bool"]["should"].push({
+        "match": {
+          "content": queryinfo.query
+        }
+      });
+    }
+    if(fields.hasOwnProperty("title")) {
+      query_text["query"]["bool"]["must"].push({
+        "match": {
+          "title": fields.title
+        }
+      });
+    }else{
+      query_text["query"]["bool"]["should"].push({
+        "match": {
+          "title": queryinfo.query
+        }
+      });
+    }
+    if(fields.hasOwnProperty("mediatype")) {
+      query_text["query"]["bool"]["must"].push({
+        "match": {
+          "media-type": fields.mediatype
+        }
+      });
+    }else{
+      query_text["query"]["bool"]["should"].push({
+        "match": {
+          "media-type": queryinfo.query
+        }
+      });
+    }
+    if(fields.hasOwnProperty("source")) {
+      query_text["query"]["bool"]["must"].push({
+        "match": {
+          "source": fields.source
+        }
+      });
+    }else{
+      query_text["query"]["bool"]["should"].push({
+        "match": {
+          "source": queryinfo.query
+        }
+      });
+    }
+    if(fields.hasOwnProperty("published" && isValidDate(fields.published))) {
+      query_text["query"]["bool"]["must"].push({
+        "match": {
+          "published": fields.published
+        }
+      });
+    }else{
+      //ignore this
+      
+    }
+   }
+  
+   return query_text;
+/*  return query_text = {
     "size": amountQuery,
     "from": fromQuery,
     "query": {
@@ -95,6 +217,11 @@ function getQueryText(searchMode, query, fromOverride, amountOverride) {
       }
     }
   };
+  */
+}
+
+function isValidDate(date_str) {
+  return /\d\d\d\d-(\d\d-\d\d(T\d\d:\d\d:\d\d)?)?/.test(date_str)
 }
 
 function fetchResultsAndDisplayThese(queryText) {
@@ -487,7 +614,7 @@ async function handleAjaxAsync(data) {
 }
 
 function parseQuery(queryString) {
-  let exploded = queryString.replaceAll(/(id:|content:|title:|mediatype:|source:|published:)/g, "|||||$1").split("|||||");
+  let exploded = queryString.replaceAll(/\s(id:|content:|title:|mediatype:|source:|published:)/g, "|||||$1").split("|||||");
 
   let queryActual = exploded[0];
   var fields = {};
@@ -501,8 +628,8 @@ function parseQuery(queryString) {
     if(field.startsWith("content:")) {
       fields["content"] = field.replace("content:", "");
     }
-    if(field.startsWith("mediatype:")) {
-      fields["mediatype"] = field.replace("mediatype:", "");
+    if(field.startsWith("title:")) {
+      fields["title"] = field.replace("title:", "");
     }
     if(field.startsWith("mediatype:")) {
       fields["mediatype"] = field.replace("mediatype:", "");
