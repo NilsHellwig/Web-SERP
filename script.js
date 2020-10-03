@@ -98,8 +98,9 @@ function getQueryText(searchMode, query, fromOverride, amountOverride) {
       "size": amountQuery,
       "from": fromQuery,
       "query": {
-        "query_string": {
+        "multi_match": {
           "query": queryinfo.query,
+          "fields": searchMode
         }
       }
     }
