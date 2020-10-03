@@ -1,7 +1,7 @@
-// init result list
 var resultList = document.querySelector(".result_list");
 var radioButtons = document.getElementsByClassName("radioButtons");
 
+//global variables
 from = 0;
 amount = parseInt($("#amount").val());
 resultListEval = [];
@@ -11,6 +11,7 @@ sessionnDcg = [];
 sessionPrecision = [];
 sessionFmeasure = [];
 
+//create a result Element
 function createResultListElement(title, id, mediaType, source, published, content) {
   newResultElement = document.createElement("div");
   newResultElement.setAttribute("class", "result");
@@ -42,10 +43,11 @@ function createResultListElement(title, id, mediaType, source, published, conten
   waitForFullContentView(content, newResultElement, showContentElement, resultPublishedElement);
 }
 
+//add Listener for showing the full document
 function waitForFullContentView(content, newResultElement, showContentElement, resultPublishedElement) {
   let fullViewOpened = false;
   let contentElement;
-  showContentElement.addEventListener("click", function() {
+  showContentElement.addEventListener("click", function () {
     if (fullViewOpened === true) {
       fullViewOpened = false;
       showContentElement.innerHTML = "Show content..."
@@ -75,153 +77,126 @@ function createResults(hits) {
   });
 }
 
+//generate the Query for elasitcsearch
 function getQueryText(searchMode, query, fromOverride, amountOverride) {
   let fromQuery = from;
   let amountQuery = amount;
-  if(typeof(fromOverride) !== 'undefined') {
+  if (typeof (fromOverride) !== 'undefined') {
     fromQuery = fromOverride;
   }
-  if(typeof(amountOverride) !== 'undefined') {
+  if (typeof (amountOverride) !== 'undefined') {
     amountQuery = amountOverride;
   }
 
+  //parse query
   let queryinfo = parseQuery(query);
   let fields = queryinfo.fields;
 
-  /*
-  {
-    "query": queryActual,
-    "fields": fields
-  };
-   */
-
-   if(Object.keys(queryinfo.fields).length == 0) {
-     // only  a query, no additional fields
-      query_text = {
+  if (Object.keys(queryinfo.fields).length == 0) {
+    // only  a query, no additional fields
+    query_text = {
       "size": amountQuery,
       "from": fromQuery,
       "query": {
         "query_string": {
           "query": queryinfo.query,
-//        "default_field": "content"
         }
       }
     }
-   }else{
+  } else {
 
-    /*
-    
-      fields["id"] = field.replace("id:", "");
-      fields["content"] = field.replace("content:", "");
-      fields["title"] = field.replace("mediatype:", "");
-      fields["mediatype"] = field.replace("mediatype:", "");
-      fields["source"] = field.replace("source:", "");
-      fields["published"] = field.replace("published:", "");
-    */
+    //additional fields set, handle them Boolean
+    query_text = {
+      "query": {
+        "bool": {
+          "must": [],
+          "should": []
+        }
+      }
+    };
 
-     //additional fields set, do some magic stuff
-     query_text = {
-       "query": {
-         "bool": {
-           "must": [],
-           "should": []
-         }
-       }
-     };
-     var multi_match_fields = [];
-     if(fields.hasOwnProperty("id")) {
-       query_tex["query"]["bool"]["must"].push({
-         "match": {
-           "id": fields.id
-         }
-       });
-     }else{
+    //MUST look for id if id is set, otherwise just look for a possible query text
+    if (fields.hasOwnProperty("id")) {
+      query_tex["query"]["bool"]["must"].push({
+        "match": {
+          "id": fields.id
+        }
+      });
+    } else {
       query_text["query"]["bool"]["should"].push({
         "match": {
           "id": queryinfo.query
         }
       });
-     }
-     if(fields.hasOwnProperty("content")) {
+    }
+    if (fields.hasOwnProperty("content")) {
       query_text["query"]["bool"]["must"].push({
         "match": {
           "content": fields.content
         }
       });
-    }else{
+    } else {
       query_text["query"]["bool"]["should"].push({
         "match": {
           "content": queryinfo.query
         }
       });
     }
-    if(fields.hasOwnProperty("title")) {
+    if (fields.hasOwnProperty("title")) {
       query_text["query"]["bool"]["must"].push({
         "match": {
           "title": fields.title
         }
       });
-    }else{
+    } else {
       query_text["query"]["bool"]["should"].push({
         "match": {
           "title": queryinfo.query
         }
       });
     }
-    if(fields.hasOwnProperty("mediatype")) {
+    if (fields.hasOwnProperty("mediatype")) {
       query_text["query"]["bool"]["must"].push({
         "match": {
           "media-type": fields.mediatype
         }
       });
-    }else{
+    } else {
       query_text["query"]["bool"]["should"].push({
         "match": {
           "media-type": queryinfo.query
         }
       });
     }
-    if(fields.hasOwnProperty("source")) {
+    if (fields.hasOwnProperty("source")) {
       query_text["query"]["bool"]["must"].push({
         "match": {
           "source": fields.source
         }
       });
-    }else{
+    } else {
       query_text["query"]["bool"]["should"].push({
         "match": {
           "source": queryinfo.query
         }
       });
     }
-    if(fields.hasOwnProperty("published" && isValidDate(fields.published))) {
+    //only check if the date is in a valid format that elasticsarch accepts
+    if (fields.hasOwnProperty("published" && isValidDate(fields.published))) {
       query_text["query"]["bool"]["must"].push({
         "match": {
           "published": fields.published
         }
       });
-    }else{
-      //ignore this
-      
     }
-   }
-   console.log(query_text);
-   return query_text;
-/*  return query_text = {
-    "size": amountQuery,
-    "from": fromQuery,
-    "query": {
-      "multi_match": {
-        "query": query,
-        "fields": searchMode
-      }
-    }
-  };
-  */
+  }
+
+  return query_text;
 }
 
+//validate date
 function isValidDate(date_str) {
-  return /\d\d\d\d-(\d\d-\d\d(T\d\d:\d\d:\d\d)?)?/.test(date_str)
+  return /\d\d\d\d-(\d\d(-\d\d(T\d\d:\d\d:\d\d(Z)?)?)?)?/.test(date_str)
 }
 
 function fetchResultsAndDisplayThese(queryText) {
@@ -242,22 +217,23 @@ function fetchResultsAndDisplayThese(queryText) {
       source: JSON.stringify(queryText),
       source_content_type: "application/json"
     },
-    success: function(result) {
+    success: function (result) {
       let hits = result.hits.hits;
 
       createResults(hits);
       buildPagination(result);
     },
-    error: function(result) {
+    error: function (result) {
       console.log("ERROR");
     },
 
   });
 }
 
+//legacy
 function getSelectedSearchMode(forceAll) {
   var forceAdd = false;
-  if(typeof(forceAll) !== 'undefined') {
+  if (typeof (forceAll) !== 'undefined') {
     forceAdd = forceAll;
   }
   let selectedFields = []
@@ -273,6 +249,7 @@ function getSelectedSearchMode(forceAll) {
   return selectedFields;
 }
 
+//build the pagination
 function buildPagination(result) {
 
   $(".pagination-item").remove();
@@ -296,6 +273,7 @@ function buildPagination(result) {
   }
 }
 
+//actually do the search
 function doSearch() {
   if (getSelectedSearchMode() !== null) {
     from = 0;
@@ -306,14 +284,15 @@ function doSearch() {
   }
 }
 
-async function readCsv(event) {
+//read the json and evaluate the results for it
+async function readJson(event) {
   console.log("Evaluation has started, this can take a bit...");
   var topics = JSON.parse(event.target.result)["topics"];
   sessionAPs = [];
   sessionRRs = [];
   //handle topics
   for await (const topic of topics) {
-   
+
     await handleTopic(topic)
   }
 
@@ -321,55 +300,47 @@ async function readCsv(event) {
   console.log("Average nDCG: " + calculateAveragenDcg());
   console.log("Average MRR: " + calculateMRR());
   console.log("Mean average Precision: " + calculateMAP());
-  /*
-  topics.forEach(async function(topic) {
-    await handleTopic(topic).done;
-  });
-  */
+
 }
 
-function calculateAverageFMeasure(){
+//calculate the average for F-measure
+function calculateAverageFMeasure() {
   return averageArray(sessionFmeasure);
 }
+//calculate the average nDCG
 function calculateAveragenDcg() {
   return averageArray(sessionnDcg);
 }
 
-
+//handle all the queries for single topic
 async function handleTopic(topic) {
   let queries = topic["queries"];
 
   for await (const query of queries) {
     await handleEvaluation(query, topic);
   }
-/*  queries.forEach(async function(query){
-    await handleEvaluation(query, topic);
-  });
-*/
 }
 
+//handle the evaluation of a queriy
 async function handleEvaluation(queries, topic) {
   let query = queries["query"];
   let fields = queries["fields"];
-  
+
   var results = await fetchAllResults(query, fields);
-  
-  resultListEval = queries["relevantResults"].map(function(item){
+
+  //only need the id here
+  resultListEval = queries["relevantResults"].map(function (item) {
     return item["queryId"];
   });
-  
-  console.log("=====================");
-  console.log("=====================");
-  console.log("%cEvaluating Topic: '" + topic["topic"] +"'", "color: red");
 
-  console.log("%cCurrently evaluating: '" + query +"'", "color: red");
-  console.log("%cCurrent query ID: '" + queries["id"] +"'", "color: red");
-  
-  //doOverallEvaluation(results);
-  
-  //doEvaluationAtK(results, 30);
-  //evaluateDCGatK(results, 30);
-  //evaluatenDCGatK(results, 30);
+  console.log("=====================");
+  console.log("=====================");
+  console.log("%cEvaluating Topic: '" + topic["topic"] + "'", "color: red");
+
+  console.log("%cCurrently evaluating: '" + query + "'", "color: red");
+  console.log("%cCurrent query ID: '" + queries["id"] + "'", "color: red");
+
+  //we used fixed k here
   let k = 30;
   doEvaluationAtK(results, k);
   let mrr = await evaluateMRRatK(results, k);
@@ -382,54 +353,58 @@ async function handleEvaluation(queries, topic) {
   return true;
 }
 
+//evaluate dcg for a result set
 async function evaluateDCGatK(results, k) {
   var dcg = 0;
   let hits = results.hits.hits;
-  for(var i = 0; i<hits.length; i++) {
-    if(i == k) {
+  for (var i = 0; i < hits.length; i++) {
+    if (i == k) {
       break;
     }
     let hitId = hits[i]._source.id;
 
     let relevance = resultListEval.includes(hitId) | 0;//binary, so we just take if it is relevant or not
     let dividend = Math.pow(2, relevance) - 1;
-    let divisor = Math.log(i+1+1); //i+1 to start from 1, using ln just like mentioned in croft et al
-    dcg += dividend/divisor;
+    let divisor = Math.log(i + 1 + 1); //i+1 to start from 1, using ln just like mentioned in croft et al
+    dcg += dividend / divisor;
 
   }
   return dcg;
 }
 
+//evaluate nDCG for a result set
 async function evaluatenDCGatK(results, k) {
   let dcgAtK = await evaluateDCGatK(results, k);
   let idealDCG = generateIdealDCGatK(k, resultListEval.length);
-  return dcgAtK/idealDCG;
+  return dcgAtK / idealDCG;
 }
 
+//generate the ideal DCG for k results
 function generateIdealDCGatK(k, relevantAmount) {
   let sum = 0;
 
-  for(var i = 0; i<k; i++){
-    let relevance =  (i<relevantAmount)|0;
+  for (var i = 0; i < k; i++) {
+    let relevance = (i < relevantAmount) | 0;
     let dividend = Math.pow(2, relevance) - 1;
-    let divisor = Math.log(i+1+1); //i+1 to start from 1
-    sum += dividend/divisor;
+    let divisor = Math.log(i + 1 + 1); //i+1 to start from 1
+    sum += dividend / divisor;
   }
   return sum;
 }
 
+//evaluate MRR
 async function evaluateMRRatK(results, k) {
   let hits = results.hits.hits;
   //default if nothing is found
   var rr = 0;
-  for(var i = 1; i<=hits.length; i++) {
-    if(i == k+1) {
+  for (var i = 1; i <= hits.length; i++) {
+    if (i == k + 1) {
       break;
     }
-    
-    let hitId = hits[i-1]._source.id;
-    if(resultListEval.includes(hitId)){
-      rr = 1/i;
+
+    let hitId = hits[i - 1]._source.id;
+    if (resultListEval.includes(hitId)) {
+      rr = 1 / i;
       break;
     }
   }
@@ -437,23 +412,24 @@ async function evaluateMRRatK(results, k) {
   return rr;
 }
 
+//more evaluation stuff
 function doEvaluationAtK(results, k) {
   console.log("=====================");
   console.log("%cEvaluation at " + k, "color: blue");
   let hits = results.hits.hits;
-//  let totalRelevantItems = resultListEval.length;
+  //  let totalRelevantItems = resultListEval.length;
   let totalRelevantItems = k;
   let totalFoundItems = hits.length;
   var tpCount = 0;
   var fpCount = 0;
-  for(var i = 0; i<hits.length; i++) {
-    if(i == k){
+  for (var i = 0; i < hits.length; i++) {
+    if (i == k) {
       break;
     }
     let hitId = hits[i]._source.id;
-    if(resultListEval.includes(hitId)){
+    if (resultListEval.includes(hitId)) {
       tpCount++;
-    }else{
+    } else {
       fpCount++;
     }
   }
@@ -473,11 +449,12 @@ function doEvaluationAtK(results, k) {
   console.log("TP: " + tpCount);
   console.log("FP: " + fpCount);
   console.log("Precision at " + k + ": " + precision);
-  console.log("Recall at " + k + ": " + recall);  
+  console.log("Recall at " + k + ": " + recall);
   console.log("F-Measure at " + k + ": " + calculateFMeasure(precision, recall, 1));
 }
 
-function doOverallEvaluation(results) {
+//legacy
+/*function doOverallEvaluation(results) {
   console.log("=====================");
   console.log("=====================");
   console.log("%cOverall: ", "color: blue");
@@ -515,15 +492,18 @@ function doOverallEvaluation(results) {
   console.log("Average Precision: " + averagePrecision);
   console.log("mAP so far: " + calculateMAP());
 }
+*/
 
+//calculate f-measure for given precision and recall and beta value
 function calculateFMeasure(precision, recall, beta) {
   //avoid NaN
-  if(precision == 0 || recall == 0){
+  if (precision == 0 || recall == 0) {
     return 0;
   }
-  return ((beta*beta+1) * precision * recall) / (beta*beta*precision + recall)
+  return ((beta * beta + 1) * precision * recall) / (beta * beta * precision + recall)
 }
 
+//calculate precision and recall for all Ks
 function calculatePRAtAllK(results, k = -1) {
   let hits = results.hits.hits;
   let totalRelevantItems = resultListEval.length;
@@ -531,20 +511,20 @@ function calculatePRAtAllK(results, k = -1) {
   var fpCount = 0;
   var precisionsAtK = []
   var recallsAtK = []
-  if(k == -1){
+  if (k == -1) {
     k = Infinity;
   }
-  for(var i = 0; i<hits.length; i++) {
+  for (var i = 0; i < hits.length; i++) {
     if (i == k) {
       break;
     }
     let hitId = hits[i]._source.id;
-    if(resultListEval.includes(hitId)){
+    if (resultListEval.includes(hitId)) {
       tpCount++;
-    }else{
+    } else {
       fpCount++;
     }
-    precisionsAtK[i] = tpCount / (i+1);
+    precisionsAtK[i] = tpCount / (i + 1);
     recallsAtK[i] = tpCount / totalRelevantItems;
   }
   return {
@@ -554,12 +534,13 @@ function calculatePRAtAllK(results, k = -1) {
 
 }
 
+//calculate averagePrecision for a precision/recall couple array
 function calculateAveragePrecision(prAtK) {
   var lastRecall = 0;
   var pAtKs = [];
 
-  for(var i = 0; i<prAtK.precision.length; i++) {
-    if(prAtK.recall[i] > lastRecall) {
+  for (var i = 0; i < prAtK.precision.length; i++) {
+    if (prAtK.recall[i] > lastRecall) {
       //recall goes up, take that P@K-value
       pAtKs.push(prAtK.precision[i]);
     }
@@ -568,15 +549,18 @@ function calculateAveragePrecision(prAtK) {
   return averageArray(pAtKs);
 }
 
-function calculateMAP(){
+//get the average
+function calculateMAP() {
   return averageArray(sessionAPs);
 }
 
+//get the average
 function calculateMRR() {
   return averageArray(sessionRRs);
 }
 
-async function fetchAllResults(query, fields){
+//fetch results asynchronously
+async function fetchAllResults(query, fields) {
   let queryText = getQueryText(fields, query, 0, 10000);
   const result = await handleAjaxAsync({
     url: "http://localhost:9200/newsarticles/_search",
@@ -593,17 +577,19 @@ async function fetchAllResults(query, fields){
   return result;
 }
 
+//helper function
 function averageArray(arr) {
-  if(arr.length == 0){
+  if (arr.length == 0) {
     return 0;
   }
   var total = 0;
-  for(var i = 0; i < arr.length; i++) {
-      total += arr[i];
+  for (var i = 0; i < arr.length; i++) {
+    total += arr[i];
   }
   return total / arr.length;
 }
 
+//helper function
 async function handleAjaxAsync(data) {
   try {
     const res = await $.ajax(data);
@@ -613,34 +599,35 @@ async function handleAjaxAsync(data) {
   }
 }
 
+//parse the query, extract the specificators
 function parseQuery(queryString) {
   let exploded = queryString.replace(/\s(id:|content:|title:|mediatype:|source:|published:)/g, "|||||$1").split("|||||");
 
   let queryActual = exploded[0];
   var fields = {};
 
-  for(var i = 1; i<exploded.length; i++) {
-    let field =  exploded[i];
-   
-    if(field.startsWith("id:")) {
+  for (var i = 1; i < exploded.length; i++) {
+    let field = exploded[i];
+
+    if (field.startsWith("id:")) {
       fields["id"] = field.replace("id:", "");
     }
-    if(field.startsWith("content:")) {
+    if (field.startsWith("content:")) {
       fields["content"] = field.replace("content:", "");
     }
-    if(field.startsWith("title:")) {
+    if (field.startsWith("title:")) {
       fields["title"] = field.replace("title:", "");
     }
-    if(field.startsWith("mediatype:")) {
+    if (field.startsWith("mediatype:")) {
       fields["mediatype"] = field.replace("mediatype:", "");
     }
-    if(field.startsWith("source:")) {
+    if (field.startsWith("source:")) {
       fields["source"] = field.replace("source:", "");
     }
-    if(field.startsWith("published:")) {
+    if (field.startsWith("published:")) {
       fields["published"] = field.replace("published:", "");
     }
-    
+
   }
 
   return {
@@ -650,14 +637,15 @@ function parseQuery(queryString) {
 
 }
 
-$(document).ready(function() {
+//add listeners here
+$(document).ready(function () {
   // this event listener is waiting for the user to click on the search button
   searchButton = document.getElementById("send_query");
-  searchButton.addEventListener("click", function() {
+  searchButton.addEventListener("click", function () {
     doSearch();
   });
 
-  $("#amount").change(function() {
+  $("#amount").change(function () {
     amount = parseInt($(this).val());
     from = 0;
     doSearch();
@@ -665,17 +653,18 @@ $(document).ready(function() {
 
   $("#evaluate").click(function () {
     var fileUpload = document.getElementById("evaluationInput");
-    
-    
-    for(var i = 0; i<fileUpload.files.length;i++) {
-      var reader = new FileReader();  
-      reader.onload = readCsv;
+
+
+    for (var i = 0; i < fileUpload.files.length; i++) {
+      var reader = new FileReader();
+      reader.onload = readJson;
       reader.readAsText(fileUpload.files[i]);
     }
-    
-});
 
-  $(document).on("click", ".pagination-item", function() {
+  });
+
+  //onClick for pagination
+  $(document).on("click", ".pagination-item", function () {
 
     from = parseInt($(this).data("num")) * amount;
 
@@ -689,9 +678,10 @@ $(document).ready(function() {
 
 });
 
+//handle enter keypress
 function handleKeyEnter(e) {
-  if(e.keyCode === 13){
-      e.preventDefault(); // Ensure it is only this code that rusn
-      doSearch();
+  if (e.keyCode === 13) {
+    e.preventDefault(); // Ensure it is only this code that rusn
+    doSearch();
   }
 }
