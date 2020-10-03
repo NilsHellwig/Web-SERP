@@ -205,7 +205,7 @@ function getQueryText(searchMode, query, fromOverride, amountOverride) {
       
     }
    }
-  
+   console.log(query_text);
    return query_text;
 /*  return query_text = {
     "size": amountQuery,
@@ -614,7 +614,6 @@ async function handleAjaxAsync(data) {
 }
 
 function parseQuery(queryString) {
-  console.log(queryString);
   let exploded = queryString.replace(/\s(id:|content:|title:|mediatype:|source:|published:)/g, "|||||$1").split("|||||");
 
   let queryActual = exploded[0];
