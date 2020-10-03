@@ -614,6 +614,7 @@ async function handleAjaxAsync(data) {
 }
 
 function parseQuery(queryString) {
+  console.log(queryString);
   let exploded = queryString.replaceAll(/\s(id:|content:|title:|mediatype:|source:|published:)/g, "|||||$1").split("|||||");
 
   let queryActual = exploded[0];
